@@ -369,9 +369,3 @@ class AiAgent:
 
         except Exception as e:
             return f"❌ Error listing files in {directory}: {str(e)}"
-
-
-# Simple usage example
-if __name__ == "__main__":
-    # Create agent
-    agent = AiAgent()

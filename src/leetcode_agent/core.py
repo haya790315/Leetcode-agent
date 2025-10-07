@@ -34,6 +34,7 @@ class LeetCodeAgent:
         Args:
             headless (bool): Whether to run browser in headless mode
             log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR)
+            lang (str): Programming language for solving problems
         """
         self.headless = headless
         self.logger = setup_logging(log_level)
@@ -110,7 +111,10 @@ class LeetCodeAgent:
 
     def navigate_to_daily_problem(self, page: Page) -> None:
         """
-        Navigate to the daily coding problem page.
+        Navigate to LeetCode's daily coding challenge problem page.
+
+        Args:
+            page (Page): Playwright page instance
         """
         if not self.browser_manager:
             raise RuntimeError("Agent not started. Call start() first.")
@@ -128,8 +132,7 @@ class LeetCodeAgent:
 
     def grabProblem(self, page: Page) -> str:
         """
-        Automatic login to LeetCode (may not work with Cloudflare).
-        For Cloudflare-protected sites, use manual_login() instead.
+        Extract problem description and editor content from LeetCode page.
         """
 
         # Get current editor content
@@ -152,6 +155,15 @@ class LeetCodeAgent:
         return problem_text
 
     def grab_result(self, page: Page) -> boolean:
+        """
+        Check submission result and determine if the solution was accepted.
+
+        Args:
+            page (Page): Playwright page instance
+
+        Returns:
+            boolean: True if solution was accepted, False otherwise
+        """
         page.wait_for_timeout(10000)
         result_area = "xpath=//*[@data-layout-path='/ts0/tb1']"
         result_text = page.locator(result_area).inner_text()
@@ -202,7 +214,11 @@ class LeetCodeAgent:
 
     def writeAnswer(self, page: Page, result_code: str) -> None:
         """
-        write answer to a specific LeetCode problem.
+        Write and submit the generated solution code to LeetCode.
+
+        Args:
+            page (Page): Playwright page instance
+            result_code (str): The solution code to submit
         """
 
         editor = page.locator(".view-lines").first

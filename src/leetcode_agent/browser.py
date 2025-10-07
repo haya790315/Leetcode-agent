@@ -41,7 +41,7 @@ def init_playwright(
     # Launch browser with stealth settings
     browser = playwright.chromium.launch(
         headless=headless,
-        channel="chrome",  # This uses real Firefox instead of Chromium
+        channel="chrome",  # This uses real Chrome instead of Chromium
     )
 
     # Create context with realistic user agent and settings
