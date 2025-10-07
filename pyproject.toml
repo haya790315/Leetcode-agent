@@ -31,7 +31,6 @@ dependencies = [
 # Entry points for command-line usage
 [project.scripts]
 leetcode-agent = "leetcode_agent.main:main"
-lc-agent = "leetcode_agent.main:main"
 
 [build-system]
 requires = ["hatchling"]

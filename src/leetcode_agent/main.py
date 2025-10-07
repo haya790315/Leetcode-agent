@@ -6,10 +6,12 @@ running the package as a module: python -m leetcode_agent
 """
 
 import argparse
+import os
 import sys
-import time
-from .core import LeetCodeAgent
-from .utils import setup_logging
+
+from leetcode_agent.core import LeetCodeAgent
+from leetcode_agent.utils import setup_logging
+from leetcode_agent.agent import AiAgent, ConversationTemplate
 
 
 def create_parser():
@@ -71,6 +73,12 @@ Examples:
         help="LeetCode base URL (default: https://leetcode.com)",
     )
 
+    parser.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Start interactive AI chat mode (no browser automation)",
+    )
+
     return parser
 
 
@@ -86,6 +94,10 @@ def main(args=None):
 
     # Set up logging
     logger = setup_logging(parsed_args.log_level)
+
+    # Check if interactive mode is requested
+    if parsed_args.interactive:
+        return interactive_mode()
 
     try:
         # Initialize the agent
@@ -106,5 +118,73 @@ def main(args=None):
         sys.exit(1)
 
 
+def interactive_mode():
+    """
+    Entry point for interactive mode command.
+
+    This function provides the interactive AI chat functionality
+    without the full LeetCode automation workflow.
+    """
+    import time
+
+    print("🤖 LeetCode AI Agent - Interactive Mode")
+    print("=" * 50)
+    print("📝 You can paste LeetCode problems or ask for help")
+    print("💡 Type 'quit', 'exit', or 'q' to end the session")
+    print("=" * 50)
+
+    try:
+        # Initialize the AI agent directly
+        agent = AiAgent(
+            model_name="gemini-2.5-flash",
+            temperature=0.5,
+            api_key=os.getenv("GOOGLE_API_KEY"),
+            template=ConversationTemplate(),
+        )
+
+        print("✅ AI Agent initialized successfully!")
+        print()
+
+        # Interactive loop
+        while True:
+            try:
+                # Get user input
+                user_input = input("🧑 You: ").strip()
+
+                # Check for quit commands
+                if user_input.lower() in ["quit", "exit", "q", ""]:
+                    break
+
+                # Send message to agent
+                print("🤖 AI Agent: ", end="", flush=True)
+                response = agent.chat(user_input)
+                print(response)
+                print()
+
+            except KeyboardInterrupt:
+                print("\n\n👋 Session interrupted by user")
+                break
+            except EOFError:
+                print("\n\n👋 Session ended")
+                break
+
+        # Show summary when quitting
+        print("\n" + "=" * 50)
+        print("📊 Session Summary:")
+        print("=" * 50)
+        summary = agent.get_conversation_summary()
+        for key, value in summary.items():
+            print(f"{key}: {value}")
+        print("=" * 50)
+        print("👋 Thank you for using LeetCode AI Agent Interactive Mode!")
+
+    except Exception as e:
+        print(f"❌ Error initializing agent: {e}")
+        print("💡 Make sure you have set the GOOGLE_API_KEY environment variable")
+        return 1
+
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    interactive_mode()
