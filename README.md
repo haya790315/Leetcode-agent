@@ -26,8 +26,6 @@ leetcode-agent/
 │       ├── agent.py             # 🤖 AI agent with Gemini integration
 │       ├── browser.py           # 🌐 Playwright browser automation
 │       └── utils.py             # 🔧 Logging and utility functions
-├── solutions/                   # 💾 Generated solution files
-├── config/                      # ⚙️ Configuration files
 ├── tests/                       # 🧪 Test files
 ├── .env.example                 # 📝 Environment template
 └── pyproject.toml              # 📋 Project configuration
@@ -46,7 +44,6 @@ leetcode-agent/
 1. **📥 Clone the repository**
    ```bash
    git clone <repository-url>
-   cd leetcode-agent
    ```
 
 2. **📦 Install dependencies with uv** (recommended)
@@ -84,13 +81,16 @@ leetcode-agent/
 
 ## 🎮 Usage
 
-### 🚀 Basic Usage
+### 🚀 Available Commands
+
+#### 🤖 **leetcode-agent** - Full Automation Mode
+Automatically solves LeetCode problems with browser automation:
 
 ```bash
-# Run with default settings
+# Run with default settings (navigates to daily problem)
 uv run leetcode-agent
 
-# Run in headless mode
+# Run in headless mode (no browser window)
 uv run leetcode-agent --headless
 
 # Use specific programming language
@@ -99,9 +99,29 @@ uv run leetcode-agent --lang python3
 # Enable debug logging
 uv run leetcode-agent --log-level DEBUG
 
-# Specify the url of leetcode problem
+# Specify a specific LeetCode problem URL
 uv run leetcode-agent --url https://leetcode.com/problems/two-sum/
+
+# Interactive AI chat mode (no browser automation)
+uv run leetcode-agent --interactive
 ```
+
+#### 💬 **Interactive AI Chat Mode**
+Get coding help without browser automation using the interactive flag:
+
+```bash
+# Start interactive chat mode
+uv run leetcode-agent --interactive
+
+# You can then:
+# - Paste LeetCode problems directly
+# - Ask for coding help and explanations
+# - Get solution strategies
+# - Request code reviews
+# - Type 'quit', 'exit', or 'q' to end session
+```
+
+### 🎛️ Command Line Options
 
 ### 🎛️ Command Line Options
 
@@ -110,10 +130,11 @@ leetcode-agent [OPTIONS]
 
 Options:
   --headless              🕶️  Run browser in headless mode (no GUI)
+  --interactive           💬  Start interactive AI chat mode (no browser automation)
   --log-level LEVEL       📊  Set logging level (DEBUG, INFO, WARNING, ERROR)
   --lang LANGUAGE         💻  Programming language (python3, java, javascript, etc.)
-  --url URL              🌐  LeetCode base URL (default: https://leetcode.com)
-  --help                 ❓  Show help message
+  --url URL               🌐  LeetCode base URL (default: https://leetcode.com)
+  --help                  ❓  Show help message
 ```
 
 ### 🔧 Available Programming Languages
@@ -125,7 +146,54 @@ Options:
 - `c`, `golang` 🔧
 - `kotlin`, `swift` 📱
 - `rust`, `ruby`, `php` 💎
-- And more!
+
+### 📖 Usage Scenarios
+
+#### 🎯 **Scenario 1: Automated Problem Solving**
+Want the agent to automatically navigate to LeetCode and solve problems:
+```bash
+# Solve today's daily challenge
+uv run leetcode-agent
+
+# Solve a specific problem
+uv run leetcode-agent --url https://leetcode.com/problems/two-sum/
+```
+
+#### 💬 **Scenario 2: Interactive Coding Help**
+Need help with a specific problem or want to brainstorm solutions:
+```bash
+# Use the interactive flag
+uv run leetcode-agent --interactive
+```
+
+**Interactive Mode Example:**
+```
+🤖 AI Code Agent - Interactive Mode
+===================================================
+📝 You can paste LeetCode problems or ask for coding help
+💡 Type 'quit', 'exit', or 'q' to end the session
+===================================================
+
+🧑 You: I need help with the Two Sum problem
+
+🤖 AI Agent: I'd be happy to help with the Two Sum problem! 
+Could you paste the problem description, or would you like me 
+to explain the common approaches to solve it?
+
+🧑 You: [paste problem description here]
+
+🤖 AI Agent: [provides solution and explanation]
+```
+
+#### 🔧 **Scenario 3: Development & Testing**
+For debugging or development purposes:
+```bash
+# Run in debug mode to see detailed logs
+uv run leetcode-agent --log-level DEBUG --headless
+
+# Test with specific language
+uv run leetcode-agent --lang python3
+```
 
 ## ⚙️ Configuration
 

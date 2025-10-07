@@ -4,28 +4,25 @@ version = "0.1.0"
 description = "A Python agent for solving LeetCode problems using AI and web automation"
 readme = "README.md"
 requires-python = ">=3.9"
-authors = [
-    {name = "LeetCode Agent Developer", email = "developer@example.com"},
-]
+authors = [{ name = "LeetCode addiction", email = "haya790315@gmail.com" }]
 keywords = ["leetcode", "automation", "ai", "problem-solving", "playwright"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Testing",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Testing",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "langchain>=0.3.27",
-    "langchain-core>=0.3.0",
-    "langchain-google-genai>=2.0.0",
-    "playwright>=1.55.0",
-    "playwright-stealth>=2.0.0",
-    "python-dotenv>=1.1.1",
+  "langchain>=0.3.27",
+  "langchain-core>=0.3.0",
+  "langchain-google-genai>=2.0.0",
+  "playwright>=1.55.0",
+  "python-dotenv>=1.1.1",
 ]
 
 # Entry points for command-line usage
@@ -40,6 +37,4 @@ build-backend = "hatchling.build"
 packages = ["src/leetcode_agent"]
 
 [dependency-groups]
-dev = [
-    "pytest>=8.4.2",
-]
+dev = ["pytest>=8.4.2"]
