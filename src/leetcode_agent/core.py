@@ -89,8 +89,8 @@ class LeetCodeAgent:
                     self.logger.info("🎉 Problem solved successfully!")
                     self.logger.info("📝 Writing solution to file...")
                     self.ai_agent.chat(
-                        """Great! The solution worked perfectly. Thank you! There still has some work to do 
-                          - please create a markdown file and name it with the problem title in the solutions folder.
+                        """Great! The solution worked perfectly. Thank you! There still has some work to do
+                          - please create a markdown file and name it with the problem title and difficulty like `1. Two Sum - (Easy).md` in the solutions folder.
                           - it should include some sections:
                             1. Problem Description: A brief overview of the problem.
                             2. Solution Approach: A detailed explanation of the approach taken to solve the problem.

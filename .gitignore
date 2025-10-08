@@ -90,3 +90,5 @@ playwright/.cache/
 
 # generated files
 solutions/
+
+browser_profile/
