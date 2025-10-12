@@ -92,7 +92,7 @@ class LeetCodeAgent:
                         """Great! The solution worked perfectly. Thank you! There still has some work to do
                           - please create a markdown file and name it with the problem title and difficulty like `1. Two Sum - (Easy).md` in the solutions folder.
                           - it should include some sections:
-                            1. Problem Description: A brief overview of the problem.
+                            1. Problem Explanation: A brief overview of the problem.
                             2. Solution Approach: A detailed explanation of the approach taken to solve the problem.
                             3. Code Implementation: The final code solution.
                             4. Complexity Analysis: Time and space complexity of the solution.

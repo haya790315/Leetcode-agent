@@ -38,7 +38,9 @@ def persistent_context_launch():
         # Single step: Launch browser WITH persistent data storage
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(profile_dir),  # 🔑 Key difference!
+            channel="chrome",  # Use installed Chrome
             headless=False,
+            bypass_csp=True,  # Bypass Content Security Policy (CSP)
         )
 
         # Browser already has a context with saved data

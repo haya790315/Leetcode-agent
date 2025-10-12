@@ -46,23 +46,13 @@ def init_playwright(
 
     # Create context with realistic user agent and settings
     context = browser.new_context(
-        viewport={"width": 1920, "height": 900},  # Common resolution
-    )
-
-    # add LeetCode session cookie for authentication
-    context.add_cookies(
-        [
-            {
-                "name": "LEETCODE_SESSION",
-                "value": os.getenv("LEETCODE_SESSION"),
-                "domain": ".leetcode.com",
-                "path": "/",
-            }
-        ]
+        viewport={"width": 1280, "height": 720},  # Common resolution
     )
 
     page = context.new_page()
-    page.goto("https://leetcode.com")
+    page.goto("https://leetcode.com/accounts/login")
+
+    input("Press Enter after logging in...")
 
     # Add local storage values after navigation
     local_storage_items = {
