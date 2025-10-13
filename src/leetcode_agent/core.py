@@ -69,7 +69,7 @@ class LeetCodeAgent:
             template=ConversationTemplate(),
         )  # Initialize your AI agent here
 
-        with self.browser_manager as (playwright, browser, context, page):
+        with self.browser_manager as (playwright, context, page):
             if not url:
                 self.logger.info(f"🚀 Starting browser and navigating to daily problem")
                 self.navigate_to_daily_problem(page)
@@ -192,6 +192,7 @@ class LeetCodeAgent:
                   and the wrong case is:
                   {self.wrong_case[-1]}
                   please try again.
+                  Return ONLY the code without any code block like ```java or ```python, and without any explanations, or comments.
               """
             )
         else:
@@ -207,7 +208,7 @@ class LeetCodeAgent:
                 {self.wrong_case[-1] if self.wrong_case else 'No wrong case provided'}
 
                 Please analyze the language of the code and return the same language of the code.
-                Return ONLY the complete working code without any markdown formatting, explanations, or comments.
+                Return ONLY the code without any code block like ```java or ```python, and without any explanations, or comments.
                 """
             )
         return result

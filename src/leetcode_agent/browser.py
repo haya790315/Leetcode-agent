@@ -9,7 +9,7 @@ from leetcode_agent.utils import setup_logging
 from playwright.sync_api import sync_playwright
 import os
 from dotenv import load_dotenv
-from playwright.sync_api._generated import Browser, BrowserContext, Page, Playwright
+from playwright.sync_api._generated import BrowserContext, Page, Playwright
 
 load_dotenv()
 
@@ -17,18 +17,18 @@ load_dotenv()
 def init_playwright(
     lang,
     headless,
-) -> tuple[Playwright, Browser, BrowserContext, Page]:
+) -> tuple[Playwright, BrowserContext, Page]:
     """
     Initialize Playwright and return browser resources.
 
     Args:
         url (str, optional): The URL to navigate to.
-                          Defaults to LEETCODE_URL from .env or https://leetcode.com/problemset/
+                          Defaults to LEETCODE_URL from .env or https://leetcode.com/login/
         headless (bool, optional): Whether to run in headless mode.
                                 Defaults to value from .env or True
 
     Returns:
-        tuple: (playwright, browser, context, page)
+        tuple: (playwright, context, page)
 
     Note: Remember to call cleanup_playwright() when done to close resources!
     """
@@ -38,21 +38,22 @@ def init_playwright(
     # Don't use 'with' here since we want to return active objects
     playwright = sync_playwright().start()
 
-    # Launch browser with stealth settings
-    browser = playwright.chromium.launch(
+    context = playwright.chromium.launch_persistent_context(
+        "",
         headless=headless,
         channel="chrome",  # This uses real Chrome instead of Chromium
+        args=[
+            "--disable-blink-features=AutomationControlled",  # Stealth
+        ],
+        viewport={"width": 1280, "height": 900},
     )
 
-    # Create context with realistic user agent and settings
-    context = browser.new_context(
-        viewport={"width": 1280, "height": 720},  # Common resolution
-    )
+    page = context.pages[0] if context.pages else context.new_page()
+    page.goto("https://leetcode.com/accounts/login", wait_until="load")
 
-    page = context.new_page()
-    page.goto("https://leetcode.com/accounts/login")
-
-    input("Press Enter after logging in...")
+    # Wait for manual login with a timeout when running interactively.
+    # Configure timeout via LOGIN_PROMPT_TIMEOUT (seconds). Default: 15s.
+    input("📧 Please complete login in then press Enter here...")
 
     # Add local storage values after navigation
     local_storage_items = {
@@ -65,16 +66,15 @@ def init_playwright(
         if value:  # Only set if value exists
             page.evaluate(f"localStorage.setItem('{key}', '{value}')")
 
-    return playwright, browser, context, page
+    return playwright, context, page
 
 
-def cleanup_playwright(playwright, browser, context=None, page=None):
+def cleanup_playwright(playwright, context=None, page=None):
     """
     Properly cleanup Playwright resources.
 
     Args:
         playwright: Playwright instance
-        browser: Browser instance
         context: Browser context (optional)
         page: Page instance (optional)
     """
@@ -83,8 +83,6 @@ def cleanup_playwright(playwright, browser, context=None, page=None):
             page.close()
         if context:
             context.close()
-        if browser:
-            browser.close()
         if playwright:
             playwright.stop()
     except Exception as e:
@@ -100,7 +98,7 @@ class PlaywrightManager:
     even if an exception occurs during execution.
 
     Usage:
-        with PlaywrightManager("https://example.com") as (playwright, browser, context, page):
+        with PlaywrightManager(lang, headless) as (playwright, context, page):
             # Use page here - this is where you do your actual work
             page.click("button")
             title = page.title()
@@ -123,7 +121,7 @@ class PlaywrightManager:
             headless (bool, optional): Whether to run browser in headless mode
         """
         self.headless = headless
-        self.resources = None  # Will store (playwright, browser, context, page)
+        self.resources = None  # Will store (playwright, context, page)
         self.lang = lang
         self.logger = setup_logging("INFO")
 
@@ -136,7 +134,7 @@ class PlaywrightManager:
         2. Creates a context (like an incognito window)
 
         Returns:
-            tuple: (playwright, browser, context, page) for use in the with block
+            tuple: (playwright, context, page) for use in the with block
         """
         self.resources = init_playwright(
             self.lang,
