@@ -1,11 +1,11 @@
 """
-Simple AI Agent with Gemini using LangChain and Conversation Memory.
+AI Agent with Gemini using LangChain and Conversation Memory.
 
-A minimal setup for an AI agent that:
+Setup for an AI agent that:
 - Uses Google Gemini via LangChain's ChatGoogleGenerativeAI
 - Maintains conversation history using LangChain's ConversationBufferMemory
-- Uses conversation templates
-- No file storage - memory only
+- Supports basic file operations as tools (create, read, list files)
+- Provides conversation export and summary functionalities
 """
 
 import os
@@ -61,7 +61,7 @@ class ConversationTemplate:
 
                 Guidelines:
                 - You need to help me to solve the leetcode problems.
-                - when I ask for code , do not tell me any explanation. I just need the code only , so please return the code only.
+                - when I ask for code , do not give me any explanation. I just need the code only , so please return the code only.
                 - If there is any wrong case provided , please fix the code and return the fixed code only.
               """
 
@@ -173,8 +173,10 @@ class AiAgent:
 
             # Generate response using LangChain with tools
             response = self.llm.invoke(messages)
+
             assistant_message = response.content
             token_usage = response.usage_metadata.get("total_tokens", 0)
+
             self.logger.info(f"📈 Token used: {token_usage}")
 
             self.used_tokens += token_usage

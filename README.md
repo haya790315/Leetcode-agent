@@ -41,16 +41,18 @@ The project includes an MCP (Model Context Protocol) server for LeetCode browser
 You can interact with the MCP server using any compatible MCP client, or integrate it into your own automation workflows.
 
 ```json
-leetcode-agent: {
-      "type": "stdio",
-      "command": "uv",
-      "args": [
-        "--directory",
-        "path/to/leetcode-agent",
-        "run",
-        "src/server.py"
-      ]
-    }
+{
+  leetcode-agent: {
+        "type": "stdio",
+        "command": "uv",
+        "args": [
+          "--directory",
+          "path/to/leetcode-agent",
+          "run",
+          "src/server.py"
+        ]
+      }
+}
 ```
 
 ### 🛠️ Available MCP Tools

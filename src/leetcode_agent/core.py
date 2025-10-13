@@ -53,9 +53,9 @@ class LeetCodeAgent:
         # AI agent model (to be initialized later)
         self.ai_agent = None
 
-    async def start(self, url) -> None:
+    async def start_automation(self, url) -> None:
         """
-        Start the agent and initialize the browser.
+        Initialize the browser and AI agent, and start the automation process.
 
         Args:
             url (str): URL to navigate to.
@@ -70,11 +70,11 @@ class LeetCodeAgent:
         )  # Initialize your AI agent here
 
         async with self.browser_manager as (playwright, context, page):
-            input("Please complete login, then press Enter here to continue...")
+            input("Please complete login, then press Enter to continue...")
             # Add local storage values before navigation
             local_storage_items = {
-                "hasShownNewFeatureGuide": "true",
-                "global_lang": self.lang,
+                "hasShownNewFeatureGuide": "true",  # Dismiss feature guide
+                "global_lang": self.lang,  # Set editor language
             }
 
             # Set local storage items
@@ -91,11 +91,12 @@ class LeetCodeAgent:
 
             await self.grabProblem(page)
             attempt = 0
-            while attempt < 5:
+            while attempt < 5:  # Limit to 5 attempts
                 self.logger.info(f"🧠 Attempt {attempt + 1}: Solving problem...")
 
                 result_code = self.solve_problem(attempt)
                 await self.writeAnswer(page, result_code)
+
                 if await self.grab_result(page):
                     self.logger.info("🎉 Problem solved successfully!")
                     self.logger.info("📝 Writing solution to file...")
@@ -117,6 +118,10 @@ class LeetCodeAgent:
             summary = self.ai_agent.get_conversation_summary()
             for key, value in summary.items():
                 self.logger.info(f"  {key}: {value}")
+
+            self.logger.info(
+                f"📦 Conversation Export:\n{self.ai_agent.export_conversation()}"
+            )
 
             await asyncio.sleep(20)
 
@@ -208,7 +213,7 @@ class LeetCodeAgent:
             result = self.ai_agent.chat(
                 f"""
                   the provided code did not work. Please fix it.
-                  and the wrong case is:
+                  the wrong case is:
                   {self.wrong_case[-1]}
                   please try again.
                   Return ONLY the code without any code block like ```java or ```python, and without any explanations, or comments.
@@ -223,11 +228,8 @@ class LeetCodeAgent:
                 and the template of the code is:
                 {self.editor_text}
 
-                and the wrong case is:
-                {self.wrong_case[-1] if self.wrong_case else 'No wrong case provided'}
-
-                Please analyze the language of the code and return the same language of the code.
-                Return ONLY the code without any code block like ```java or ```python, and without any explanations, or comments.
+                Please analyze the language of the code and using the same language to solve the problem.
+                Return ONLY the code without any code block like ```java or ```python, and without any explanations or comments.
                 """
             )
         return result

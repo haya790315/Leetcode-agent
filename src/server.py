@@ -11,7 +11,7 @@ browser_manager = None
 no_browser_session_message = "No browser session found. Please open the browser and access leetcode.com for the user first."
 
 
-@mcp.tool()
+@mcp.tool(title="Open Browser and Access LeetCode")
 async def access_leetcode_web():
     """
     Launch a new Chrome browser and navigate to leetcode.com.
@@ -47,8 +47,8 @@ async def access_leetcode_web():
         )
 
 
-@mcp.tool()
-async def goto_url(url: str):
+@mcp.tool(title="Navigate to URL")
+async def goto(url: str):
     """
     Navigate the browser to a specified URL.
 
@@ -66,8 +66,8 @@ async def goto_url(url: str):
     return f"Navigated to {url}"
 
 
-@mcp.tool()
-async def go_to_daily_problem():
+@mcp.tool(title="Go to Daily Problem Page")
+async def go_daily_problem():
     """
     Navigate the browser to the LeetCode daily problem page.
     Returns a status message after navigation.
@@ -84,8 +84,8 @@ async def go_to_daily_problem():
     return "Navigated to daily problem."
 
 
-@mcp.tool()
-async def get_problem_description() -> str:
+@mcp.tool(title="Get Problem Description and analyze")
+async def get_problem() -> str:
     """
     Get the problem description from the current LeetCode problem page.
     Returns a prompt for the user to decide whether to solve the problem.
@@ -101,12 +101,12 @@ async def get_problem_description() -> str:
     return (
         f"The problem description is: {problem_description}\n"
         "Ask the user if they want me to solve it. "
-        "If yes, solve the problem and write the code in the code editor on the page."
+        "If yes, solve the problem and write the code in the code editor on the page, please use Java if User has not specified the language."
     )
 
 
-@mcp.tool()
-async def write_solution_code(code: str) -> str:
+@mcp.tool(title="Write Solution Code To Editor")
+async def write_code(code: str) -> str:
     """
     Write the solution code to the code editor on the page.
 
@@ -127,7 +127,7 @@ async def write_solution_code(code: str) -> str:
     return "The solution code has been written to the code editor on the page. Please check it."
 
 
-@mcp.tool()
+@mcp.tool(title="Close Browser")
 async def close_browser():
     """
     Close the browser session and clean up resources.
