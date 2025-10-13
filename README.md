@@ -26,12 +26,59 @@ leetcode-agent/
 │       ├── agent.py             # 🤖 AI agent with Gemini integration
 │       ├── browser.py           # 🌐 Playwright browser automation
 │       └── utils.py             # 🔧 Logging and utility functions
+│
+├── src/server.py                # 🖧 MCP server for LeetCode automation
 ├── tests/                       # 🧪 Test files
 ├── .env.example                 # 📝 Environment template
 └── pyproject.toml              # 📋 Project configuration
 ```
+## 🖧 MCP Server Usage
 
-## 🚀 Quick Start
+The project includes an MCP (Model Context Protocol) server for LeetCode browser automation, exposing tools for browser control and problem solving via the MCP protocol.
+
+### 🚀 Starting the MCP Server
+
+You can interact with the MCP server using any compatible MCP client, or integrate it into your own automation workflows.
+
+```json
+leetcode-agent: {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "--directory",
+        "path/to/leetcode-agent",
+        "run",
+        "src/server.py"
+      ]
+    }
+```
+
+### 🛠️ Available MCP Tools
+
+The MCP server exposes the following tools:
+
+- `access_leetcode_web`: Launches a browser and navigates to leetcode.com, setting up the session.
+- `goto_url(url)`: Navigates the browser to a specified URL.
+- `go_to_daily_problem`: Navigates to the LeetCode daily problem page.
+- `get_problem_description`: Extracts the current problem description from the page.
+- `write_solution_code(code)`: Writes code to the LeetCode code editor on the page.
+- `close_browser`: Closes the browser session and cleans up resources.
+
+### ⚙️ Configuration
+
+To use the MCP server, ensure the following:
+
+- **Python 3.9+** is installed
+- **uv package manager** is installed
+- **Playwright** and browsers are installed:
+   ```bash
+   uv run playwright install
+   # or
+   playwright install
+   ```
+---
+
+## �🚀 Quick Start
 
 ### 📋 Prerequisites
 
@@ -123,18 +170,19 @@ uv run leetcode-agent --interactive
 
 ### 🎛️ Command Line Options
 
-### 🎛️ Command Line Options
+
+### 🎛️ Command Line Options (CLI Mode)
 
 ```bash
 leetcode-agent [OPTIONS]
 
 Options:
-  --headless              🕶️  Run browser in headless mode (no GUI)
-  --interactive           💬  Start interactive AI chat mode (no browser automation)
-  --log-level LEVEL       📊  Set logging level (DEBUG, INFO, WARNING, ERROR)
-  --lang LANGUAGE         💻  Programming language (python3, java, javascript, etc.)
-  --url URL               🌐  LeetCode base URL (default: https://leetcode.com)
-  --help                  ❓  Show help message
+   --headless              🕶️  Run browser in headless mode (no GUI)
+   --interactive           💬  Start interactive AI chat mode (no browser automation)
+   --log-level LEVEL       📊  Set logging level (DEBUG, INFO, WARNING, ERROR)
+   --lang LANGUAGE         💻  Programming language (python3, java, javascript, etc.)
+   --url URL               🌐  LeetCode base URL (default: https://leetcode.com)
+   --help                  ❓  Show help message
 ```
 
 ### 🔧 Available Programming Languages

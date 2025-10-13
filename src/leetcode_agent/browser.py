@@ -1,25 +1,22 @@
 """
-Browser automation module for LeetCode Agent.
-
-This module provides web automation capabilities using Playwright,
+Browser automation module for LeetCode Agent (async version).
+This module provides web automation capabilities using Playwright async API,
 with proper resource management and error handling.
 """
 
 from leetcode_agent.utils import setup_logging
-from playwright.sync_api import sync_playwright
 import os
 from dotenv import load_dotenv
-from playwright.sync_api._generated import BrowserContext, Page, Playwright
+from playwright.async_api import async_playwright, Playwright, BrowserContext, Page
 
 load_dotenv()
 
 
-def init_playwright(
-    lang,
+async def init_playwright(
     headless,
 ) -> tuple[Playwright, BrowserContext, Page]:
     """
-    Initialize Playwright and return browser resources.
+    Initialize Playwright and return browser resources (async version).
 
     Args:
         url (str, optional): The URL to navigate to.
@@ -35,10 +32,8 @@ def init_playwright(
     if headless is None:
         headless = os.getenv("HEADLESS_BROWSER", "True").lower() == "true"
 
-    # Don't use 'with' here since we want to return active objects
-    playwright = sync_playwright().start()
-
-    context = playwright.chromium.launch_persistent_context(
+    playwright = await async_playwright().start()
+    context = await playwright.chromium.launch_persistent_context(
         "",
         headless=headless,
         channel="chrome",  # This uses real Chrome instead of Chromium
@@ -48,28 +43,14 @@ def init_playwright(
         viewport={"width": 1280, "height": 900},
     )
 
-    page = context.pages[0] if context.pages else context.new_page()
-    page.goto("https://leetcode.com/accounts/login", wait_until="load")
-
-    # Wait for manual login with a timeout when running interactively.
-    # Configure timeout via LOGIN_PROMPT_TIMEOUT (seconds). Default: 15s.
-    input("📧 Please complete login in then press Enter here...")
-
-    # Add local storage values after navigation
-    local_storage_items = {
-        "hasShownNewFeatureGuide": "true",
-        "global_lang": lang,
-    }
-
-    # Set local storage items
-    for key, value in local_storage_items.items():
-        if value:  # Only set if value exists
-            page.evaluate(f"localStorage.setItem('{key}', '{value}')")
+    pages = context.pages
+    page = pages[0] if pages else await context.new_page()
+    await page.goto("https://leetcode.com/accounts/login", wait_until="load")
 
     return playwright, context, page
 
 
-def cleanup_playwright(playwright, context=None, page=None):
+async def cleanup_playwright(playwright, context=None, page=None):
     """
     Properly cleanup Playwright resources.
 
@@ -80,95 +61,44 @@ def cleanup_playwright(playwright, context=None, page=None):
     """
     try:
         if page:
-            page.close()
+            await page.close()
         if context:
-            context.close()
+            await context.close()
         if playwright:
-            playwright.stop()
+            await playwright.stop()
     except Exception as e:
         print(f"Error during cleanup: {e}")
 
 
 class PlaywrightManager:
     """
-    Context manager for Playwright that handles cleanup automatically.
-
-    This implements the Context Manager Protocol (__enter__ and __exit__).
-    It ensures that browser resources are always properly cleaned up,
-    even if an exception occurs during execution.
+    Async context manager for Playwright that handles cleanup automatically.
 
     Usage:
-        with PlaywrightManager(lang, headless) as (playwright, context, page):
+        async with AsyncPlaywrightManager(headless) as (playwright, context, page):
             # Use page here - this is where you do your actual work
-            page.click("button")
-            title = page.title()
-            page.screenshot(path="screenshot.png")
+            await page.click("button")
+            title = await page.title()
+            await page.screenshot(path="screenshot.png")
         # Everything is automatically cleaned up here
-
-    Benefits:
-        - No memory leaks from unclosed browsers
-        - No zombie browser processes
-        - Exception-safe resource management
-        - Cleaner, more readable code
     """
 
-    def __init__(self, lang, headless):
-        """
-        Initialize the manager with URL and browser settings.
-
-        Args:
-            url (str): The URL to navigate to when page is created
-            headless (bool, optional): Whether to run browser in headless mode
-        """
+    def __init__(self, headless):
         self.headless = headless
         self.resources = None  # Will store (playwright, context, page)
-        self.lang = lang
         self.logger = setup_logging("INFO")
 
-    def __enter__(self):
-        """
-        Called when entering the 'with' block.
-
-        This method:
-        1. Creates the browser (heavy operation)
-        2. Creates a context (like an incognito window)
-
-        Returns:
-            tuple: (playwright, context, page) for use in the with block
-        """
-        self.resources = init_playwright(
-            self.lang,
-            self.headless,
-        )
+    async def __aenter__(self):
+        self.resources = await init_playwright(self.headless)
         return self.resources
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        Called when exiting the 'with' block (even on exceptions).
-
-        This method:
-        1. Closes the page (tab)
-        2. Closes the context (window)
-        3. Closes the browser (application)
-        4. Stops the playwright instance
-
-        Args:
-            exc_type: Exception type (if any exception occurred)
-            exc_val: Exception value (if any exception occurred)
-            exc_tb: Exception traceback (if any exception occurred)
-
-        Returns:
-            None: (returning None means "don't suppress exceptions")
-        """
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.resources:
             self.logger.info("🧹 Cleaning up browser resources...")
-            cleanup_playwright(*self.resources)
+            await cleanup_playwright(*self.resources)
             self.logger.info("✅ Cleanup completed")
-
-        # If an exception occurred, don't suppress it (return None/False)
         if exc_type is not None:
             self.logger.error(
                 f"⚠️  Exception occurred during execution: {exc_type.__name__}: {exc_val}"
             )
-
-        return False  # Don't suppress exceptions
+        return False
