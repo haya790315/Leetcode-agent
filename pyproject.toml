@@ -3,7 +3,7 @@ name = "leetcode-agent"
 version = "0.1.0"
 description = "A Python agent for solving LeetCode problems using AI and web automation"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 authors = [{ name = "LeetCode addiction", email = "haya790315@gmail.com" }]
 keywords = ["leetcode", "automation", "ai", "problem-solving", "playwright"]
 classifiers = [
@@ -23,11 +23,13 @@ dependencies = [
   "langchain-google-genai>=2.0.0",
   "playwright>=1.55.0",
   "python-dotenv>=1.1.1",
+  "mcp[cli]",
+  "mcp-client",
 ]
 
 # Entry points for command-line usage
 [project.scripts]
-leetcode-agent = "leetcode_agent.main:main"
+leetcode-agent = "leetcode_agent.main:cli_main"
 
 [build-system]
 requires = ["hatchling"]

@@ -6,6 +6,7 @@ running the package as a module: python -m leetcode_agent
 """
 
 import argparse
+import asyncio
 import os
 import sys
 
@@ -82,7 +83,7 @@ Examples:
     return parser
 
 
-def main(args=None):
+async def main(args=None):
     """
     Main entry point for the LeetCode Agent.
 
@@ -97,7 +98,7 @@ def main(args=None):
 
     # Check if interactive mode is requested
     if parsed_args.interactive:
-        return interactive_mode()
+        return await interactive_mode()
 
     try:
         # Initialize the agent
@@ -108,7 +109,7 @@ def main(args=None):
         )
 
         # Start the agent
-        agent.start(parsed_args.url)
+        await agent.start(parsed_args.url)
 
     except KeyboardInterrupt:
         logger.info("\n🛑 Agent interrupted by user")
@@ -118,7 +119,7 @@ def main(args=None):
         sys.exit(1)
 
 
-def interactive_mode():
+async def interactive_mode():
     """
     Entry point for interactive mode command.
 
@@ -157,7 +158,7 @@ def interactive_mode():
 
                 # Send message to agent
                 print("🤖 AI Agent: ", end="", flush=True)
-                response = agent.chat(user_input)
+                response = await agent.chat(user_input)
                 print(response)
                 print()
 
@@ -186,5 +187,9 @@ def interactive_mode():
     return 0
 
 
+def cli_main() -> None:
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
-    interactive_mode()
+    cli_main()

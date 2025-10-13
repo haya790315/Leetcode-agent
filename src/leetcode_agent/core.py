@@ -1,9 +1,10 @@
 """
 Core LeetCode Agent functionality.
 
-This module contains the main agent class and problem-solving logic.
+This module contains the main LeetCodeAgent class and problem-solving logic for automating LeetCode tasks.
 """
 
+import asyncio
 from typing import Dict, Any
 from xmlrpc.client import boolean
 
@@ -23,45 +24,44 @@ class LeetCodeAgent:
     """
     Main LeetCode Agent class for automated problem solving.
 
-    This class coordinates between browser automation, AI models,
-    and problem-solving strategies.
+    This class coordinates browser automation, AI models, and problem-solving strategies.
     """
 
-    def __init__(self, headless: bool, log_level: str, lang: str):
+    def __init__(self, headless: bool, log_level: str, lang: str, browser_manager=None):
         """
         Initialize the LeetCode Agent.
 
         Args:
-            headless (bool): Whether to run browser in headless mode
-            log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR)
-            lang (str): Programming language for solving problems
+            headless (bool): Whether to run the browser in headless mode.
+            log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR).
+            lang (str): Programming language for solving problems.
+            browser_manager: Optional browser manager instance.
         """
         self.headless = headless
         self.logger = setup_logging(log_level)
-        self.browser_manager = None
+        self.browser_manager = browser_manager
         self.lang = lang
 
         # State variables to store current problem and editor content
-        self.current_problem_text = None
-        self.current_editor_text = None
-        self.wrong_case = []
+        self.current_problem_text = None  # Current problem statement text
+        self.current_editor_text = None  # Current code in the editor
+        self.wrong_case = []  # List of wrong test cases
 
         # Detect OS for cross-platform keyboard shortcuts
         self.is_mac = platform.system() == "Darwin"
 
-        # AI agent model
-        self.ai_agent = None  # Placeholder for AI agent instance
+        # AI agent model (to be initialized later)
+        self.ai_agent = None
 
-    def start(self, url) -> None:
+    async def start(self, url) -> None:
         """
-        Start the agent and initialize browser.
+        Start the agent and initialize the browser.
 
         Args:
-            url (str): URL to navigate to
+            url (str): URL to navigate to.
         """
         self.logger.info(f"🚀 Starting LeetCode Agent...")
-        self.logger.info(f"🌐 Navigating to: {url}")
-        self.browser_manager = PlaywrightManager(self.lang, headless=self.headless)
+        self.browser_manager = PlaywrightManager(headless=self.headless)
         self.ai_agent = AiAgent(
             model_name="gemini-2.5-flash",
             temperature=0.5,
@@ -69,23 +69,34 @@ class LeetCodeAgent:
             template=ConversationTemplate(),
         )  # Initialize your AI agent here
 
-        with self.browser_manager as (playwright, context, page):
+        async with self.browser_manager as (playwright, context, page):
+            input("Please complete login, then press Enter here to continue...")
+            # Add local storage values before navigation
+            local_storage_items = {
+                "hasShownNewFeatureGuide": "true",
+                "global_lang": self.lang,
+            }
+
+            # Set local storage items
+            for key, value in local_storage_items.items():
+                if value:
+                    await page.evaluate(f"localStorage.setItem('{key}', '{value}')")
+
             if not url:
                 self.logger.info(f"🚀 Starting browser and navigating to daily problem")
-                self.navigate_to_daily_problem(page)
+                await self.navigate_to_daily_problem(page)
             else:
                 self.logger.info(f"🚀 Starting browser and navigating to {url}")
-                page.goto(url)
+                await page.goto(url)
 
-            self.grabProblem(page)
+            await self.grabProblem(page)
             attempt = 0
-
-            while attempt < 10:
+            while attempt < 5:
                 self.logger.info(f"🧠 Attempt {attempt + 1}: Solving problem...")
 
                 result_code = self.solve_problem(attempt)
-                self.writeAnswer(page, result_code)
-                if self.grab_result(page):
+                await self.writeAnswer(page, result_code)
+                if await self.grab_result(page):
                     self.logger.info("🎉 Problem solved successfully!")
                     self.logger.info("📝 Writing solution to file...")
                     self.ai_agent.chat(
@@ -107,46 +118,53 @@ class LeetCodeAgent:
             for key, value in summary.items():
                 self.logger.info(f"  {key}: {value}")
 
-            time.sleep(20)
+            await asyncio.sleep(20)
 
-    def navigate_to_daily_problem(self, page: Page) -> None:
+    async def navigate_to_daily_problem(self, page: Page) -> None:
         """
         Navigate to LeetCode's daily coding challenge problem page.
 
         Args:
-            page (Page): Playwright page instance
+            page (Page): Playwright page instance.
         """
         if not self.browser_manager:
             raise RuntimeError("Agent not started. Call start() first.")
 
         # Use the context manager properly
         # Navigate to problem page
-        page.goto("https://leetcode.com/problemset/")
+        await page.goto("https://leetcode.com/problemset/")
 
         # First, let's log the target element's HTML for debugging
         daily_problem_link = "xpath=//a[contains(@class,'group flex flex-col rounded-[8px] duration-300 bg-fill-quaternary dark:bg-fill-quaternary')]"
 
-        page.locator(daily_problem_link).first.click()
+        await page.locator(daily_problem_link).first.click()
 
-        page.wait_for_load_state("networkidle")
+        await page.wait_for_load_state("networkidle")
 
-    def grabProblem(self, page: Page) -> str:
+    async def grabProblem(self, page: Page) -> str:
         """
         Extract problem description and editor content from LeetCode page.
+
+        Args:
+            page (Page): Playwright page instance.
+
+        Returns:
+            str: The problem description text.
         """
 
         # Get current editor content
+
         editor = page.locator(".view-lines").first
-        editor.click()
+        await editor.click()
 
         # Save editor text to state
-        self.editor_text = editor.inner_text()
+        self.editor_text = await editor.inner_text()
 
         problemElement = page.locator(
             "xpath=//div[contains(@class, 'flex w-full flex-1 flex-col gap-4 overflow-y-auto px-4 py-5')]"
         )
 
-        problem_text = problemElement.inner_text()
+        problem_text = await problemElement.inner_text()
 
         # Save problem text to state
         self.problem_text = problem_text
@@ -154,19 +172,19 @@ class LeetCodeAgent:
         # self.logger.info(f"📝 Problem text preview:\n{problem_text[:500]}...")
         return problem_text
 
-    def grab_result(self, page: Page) -> boolean:
+    async def grab_result(self, page: Page) -> boolean:
         """
         Check submission result and determine if the solution was accepted.
 
         Args:
-            page (Page): Playwright page instance
+            page (Page): Playwright page instance.
 
         Returns:
-            boolean: True if solution was accepted, False otherwise
+            boolean: True if solution was accepted, False otherwise.
         """
-        page.wait_for_timeout(10000)
+        await page.wait_for_timeout(10000)
         result_area = "xpath=//*[@data-layout-path='/ts0/tb1']"
-        result_text = page.locator(result_area).inner_text()
+        result_text = await page.locator(result_area).inner_text()
 
         if "Accepted" in result_text:
             self.logger.info("✅ Answer Accepted")
@@ -181,9 +199,10 @@ class LeetCodeAgent:
         Solve a specific LeetCode problem.
 
         Args:
-            attempt (int): Number of iterations attempted
+            attempt (int): Number of iterations attempted.
+
         Returns:
-            str: The solution code generated by the AI agent
+            str: The solution code generated by the AI agent.
         """
         if attempt > 0:
             result = self.ai_agent.chat(
@@ -213,23 +232,26 @@ class LeetCodeAgent:
             )
         return result
 
-    def writeAnswer(self, page: Page, result_code: str) -> None:
+    async def writeAnswer(
+        self, page: Page, result_code: str, autoSubmit: bool = True
+    ) -> None:
         """
         Write and submit the generated solution code to LeetCode.
 
         Args:
-            page (Page): Playwright page instance
-            result_code (str): The solution code to submit
+            page (Page): Playwright page instance.
+            result_code (str): The solution code to submit.
+            autoSubmit (bool): Whether to automatically submit the answer after writing. Default is True.
         """
 
         editor = page.locator(".view-lines").first
-        editor.click()
+        await editor.click()
 
         # Code to paste
         code = f"""{result_code}"""
 
         # Use JSON.stringify for safer string handling
-        page.evaluate(
+        await page.evaluate(
             f"""
         async () => {{
             const code = {repr(code)};
@@ -246,24 +268,24 @@ class LeetCodeAgent:
             select_all_key = "Control+a"
             paste_key = "Control+v"
 
-        page.keyboard.press(select_all_key)
-        page.keyboard.press("Delete")
+        await page.keyboard.press(select_all_key)
+        await page.keyboard.press("Delete")
 
         # Paste the code
-        page.keyboard.press(paste_key)
+        await page.keyboard.press(paste_key)
 
         self.logger.info("✅ Code pasted successfully")
 
-        page.click("xpath=//button[@data-cid='3']")
-
-        self.logger.info("📤 Answer submitted.")
+        if autoSubmit:
+            await page.click("xpath=//button[@data-cid='3']")
+            self.logger.info("📤 Answer submitted.")
 
     def get_problem(self) -> Dict[str, Any]:
         """
         Get the current state of problem and editor content.
 
         Returns:
-            Dict containing current problem text, editor text, and metadata
+            Dict[str, Any]: Dictionary containing current problem text, editor text, and metadata.
         """
         return {
             "problem_text": self.problem_text,
@@ -272,11 +294,21 @@ class LeetCodeAgent:
         }
 
     def __enter__(self):
-        """Context manager entry."""
+        """
+        Context manager entry.
+        Returns:
+            self: The LeetCodeAgent instance.
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit with cleanup."""
+        """
+        Context manager exit with cleanup.
+        Args:
+            exc_type: Exception type.
+            exc_val: Exception value.
+            exc_tb: Exception traceback.
+        """
         if self.browser_manager:
             # The browser manager will handle its own cleanup
             pass
