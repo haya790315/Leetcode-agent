@@ -21,12 +21,12 @@ def create_parser():
         description="LeetCode Agent - Automated problem solving assistant",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  python -m leetcode_agent                    # Start with default settings
-  python -m leetcode_agent --headless        # Run in headless mode
-  python -m leetcode_agent --log-level DEBUG # Enable debug logging
-  python -m leetcode_agent --lang java       # Set default programming language to Java
-        """,
+        Examples:
+          python -m leetcode_agent                    # Start with default settings
+          python -m leetcode_agent --headless        # Run in headless mode
+          python -m leetcode_agent --log-level DEBUG # Enable debug logging
+          python -m leetcode_agent --lang java       # Set default programming language to Java
+          python -m leetcode_agent --url https://leetcode.com  # Use custom LeetCode URL""",
     )
 
     parser.add_argument(
@@ -109,7 +109,7 @@ async def main(args=None):
         )
 
         # Start the agent
-        await agent.start(parsed_args.url)
+        await agent.start_automation(parsed_args.url)
 
     except KeyboardInterrupt:
         logger.info("\n🛑 Agent interrupted by user")
