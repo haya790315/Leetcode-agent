@@ -119,10 +119,6 @@ class LeetCodeAgent:
             for key, value in summary.items():
                 self.logger.info(f"  {key}: {value}")
 
-            self.logger.info(
-                f"📦 Conversation Export:\n{self.ai_agent.export_conversation()}"
-            )
-
             await asyncio.sleep(20)
 
     async def navigate_to_daily_problem(self, page: Page) -> None:
